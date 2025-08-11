@@ -2,26 +2,16 @@
 
 require_once 'db.php';
 
-$json = file_get_contents('php://input');
-$data = json_decode($json);
+$json_payload = file_get_contents('php://input');
 
-if (isset($data->order) && is_array($data->order)) {
-    
-    $itemOrder = $data->order;
-
-    foreach ($itemOrder as $position => $id) {
-        
-        $sql = "UPDATE users SET display_order = ? WHERE id = ?";
-        $statement = $pdo->prepare($sql);
-        $statement->execute([$position, $id]);
-    }
+if(!empty($json_payload)){
+    $sql = "INSERT INTO data_process (request_data) VALUES (?)";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$json_payload]);
 
     header('Content-Type: application/json');
-    echo json_encode(['status' => 'success', 'message' => 'Order saved.']);
-
-} else {
-
+    echo json_encode(['status' => 'success', 'message' => 'Your change has been added to the queue.']);
+}else{
     header('Content-Type: application/json');
-    echo json_encode(['status' => 'error', 'message' => 'Invalid data received.']);
+    echo json_encode(['status' => 'error', 'message' => 'No data received.']);
 }
-?>

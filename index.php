@@ -27,6 +27,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="container">
         <h1>Table List</h1>
         <div id="selection-info"></div>
+        <div id="update-message" style="text-align: center; color: #28a745; font-weight: bold; height: 20px; margin-bottom: 10px;"></div>
 
         <table class="custom-table">
             <thead>
@@ -61,6 +62,8 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             const tableBody = document.getElementById('sortable-table');
             const selectionInfo = document.getElementById('selection-info');
 
+            const updateMessageDiv = document.getElementById('update-message');
+
 
             // Initialize SortableJs
             new Sortable(tableBody, {
@@ -85,7 +88,15 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         })
                         .then(response => response.json())
                         .then(data => {
-                            console.log('Saved ', data.status);
+                            console.log('Server response:', data.message);
+
+                            if (data.status === 'success') {
+                                updateMessageDiv.textContent = 'Updated successfully!';
+
+                                setTimeout(function() {
+                                    updateMessageDiv.textContent = '';
+                                }, 3000);
+                            }
                         })
                         .catch(error => {
                             console.error('Error saving order:', error);
@@ -118,4 +129,5 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </script>
 
 </body>
+
 </html>

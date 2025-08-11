@@ -8,13 +8,14 @@ CREATE TABLE users (
   PRIMARY KEY (id)
 );
 
-CREATE TABLE `data_process` (
-  `process_id` INT NOT NULL AUTO_INCREMENT,
-  `process_status` ENUM('queued', 'processing', 'completed', 'failed') NOT NULL DEFAULT 'queued',
-  `request_data` JSON NOT NULL,
-  `queued_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`process_id`)
-);
+CREATE TABLE data_process(
+    process_id INT NOT NULL AUTO_INCREMENT,
+    process_status ENUM('queue','processing','completed','failed')NOT NULL DEFAULT 'queue',
+    request_data JSON NOT NULL,
+    queued_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(process_id)
+    );
+
 
 
 INSERT INTO `users` (`id`, `name`, `address`, `phone`, `email`, `display_order`) VALUES
