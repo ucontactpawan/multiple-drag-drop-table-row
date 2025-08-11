@@ -7,14 +7,14 @@ CREATE TABLE users (
   display_order INT NOT NULL,
   PRIMARY KEY (id)
 );
-
-CREATE TABLE data_process(
-    process_id INT NOT NULL AUTO_INCREMENT,
-    process_status ENUM('queue','processing','completed','failed')NOT NULL DEFAULT 'queue',
-    request_data JSON NOT NULL,
-    queued_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY(process_id)
-    );
+  -- drop data_process table currently i am not using queue system. i"m currently directly saving the order in the database.
+-- CREATE TABLE data_process(
+--     process_id INT NOT NULL AUTO_INCREMENT,
+--     process_status ENUM('queue','processing','completed','failed')NOT NULL DEFAULT 'queue',
+--     request_data JSON NOT NULL,
+--     queued_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     PRIMARY KEY(process_id)
+--     );
 
 
 

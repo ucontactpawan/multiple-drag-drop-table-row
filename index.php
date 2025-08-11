@@ -1,9 +1,8 @@
 <?php
 require_once 'db.php';
 
-$sql = "SELECT * FROM users ORDER BY display_order ASC";
-$stmt = $pdo->prepare($sql);
-$stmt->execute();
+$sql = "SELECT id, name, address, phone, email, last_update FROM users ORDER BY display_order ASC";
+$stmt = $pdo->query($sql);
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
@@ -14,11 +13,8 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drag and Drop Table Rows</title>
-    <!-- Font Awesome link -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- SortableJs Library link -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-    <!-- Custom CSS link -->
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -43,7 +39,9 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <tbody id="sortable-table">
                 <?php
                 foreach ($users as $user): ?>
-                    <tr data-id="<?php echo htmlspecialchars($user['id']); ?>">
+                    <!-- Add a 'data-last-update' attribute to store the timestamp -->
+                    <tr data-id="<?php echo htmlspecialchars($user['id']); ?>"
+                        data-last-update="<?php echo htmlspecialchars($user['last_update']); ?>">
                         <td class="drag-handle"><i class="fas fa-grip-vertical"></i></td>
                         <td><?php echo htmlspecialchars($user['id']); ?></td>
                         <td><?php echo htmlspecialchars($user['name']); ?></td>
@@ -56,16 +54,12 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </table>
     </div>
 
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const tableBody = document.getElementById('sortable-table');
             const selectionInfo = document.getElementById('selection-info');
-
             const updateMessageDiv = document.getElementById('update-message');
 
-
-            // Initialize SortableJs
             new Sortable(tableBody, {
                 handle: '.drag-handle',
                 animation: 150,
@@ -74,16 +68,19 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 selectedClass: 'row-selected',
 
                 onEnd: function(evt) {
+                    // Get the last_update timestamp
+                    const firstRow = tableBody.querySelector('tr');
+                    const lastUpdateTimestamp = firstRow ? firstRow.dataset.lastUpdate : null;
                     const itemOrder = Array.from(tableBody.querySelectorAll('tr')).map(tr => tr.dataset.id);
 
-                    // Api to send data to server 
                     fetch('save_order.php', {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json',
+                                'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                order: itemOrder
+                                order: itemOrder,
+                                last_update: lastUpdateTimestamp
                             })
                         })
                         .then(response => response.json())
@@ -91,11 +88,14 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             console.log('Server response:', data.message);
 
                             if (data.status === 'success') {
+                                updateMessageDiv.style.color = '#28a745';
                                 updateMessageDiv.textContent = 'Updated successfully!';
-
-                                setTimeout(function() {
-                                    updateMessageDiv.textContent = '';
-                                }, 3000);
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                updateMessageDiv.style.color = 'red';
+                                updateMessageDiv.textContent = data.message; 
                             }
                         })
                         .catch(error => {
@@ -103,16 +103,9 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         });
                 }
             });
-
-            //Handle row selection
             tableBody.addEventListener('click', function(e) {
                 const clickedRow = e.target.closest('tr');
-                if (!clickedRow) return;
-
-                if (e.target.closest('.drag-handle')) {
-                    return;
-                }
-
+                if (!clickedRow || e.target.closest('.drag-handle')) return;
                 setTimeout(updateSelectionCount, 50);
             });
 
