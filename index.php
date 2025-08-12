@@ -47,6 +47,10 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <th>Address</th>
                     <th>Phone</th>
                     <th>Email</th>
+                    <th>DOB</th>
+                    <th>Status</th>
+                    <th>Gender</th>
+                    <th>Position</th>
                 </tr>
             </thead>
             <tbody id="sortable-table">
@@ -54,13 +58,20 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 foreach ($users as $user): ?>
                     <tr data-id="<?php echo htmlspecialchars($user['id']); ?>">
                         <td class="drag-handle">
-                        <i class="fas fa-grip-vertical"></i>
-                        <?php echo htmlspecialchars($user['id']); ?>
-                    </td>
+                            <i class="fas fa-grip-vertical"></i>
+                            <?php echo htmlspecialchars($user['id']); ?>
+                        </td>
                         <td><?php echo htmlspecialchars($user['name']); ?></td>
                         <td><?php echo htmlspecialchars($user['address']); ?></td>
                         <td><?php echo htmlspecialchars($user['phone']); ?></td>
                         <td><?php echo htmlspecialchars($user['email']); ?></td>
+
+
+                        <!-- ADD THESE NEW CELLS -->
+                        <td><?php echo htmlspecialchars($user['dob']); ?></td>
+                        <td><?php echo htmlspecialchars($user['status']); ?></td>
+                        <td><?php echo htmlspecialchars($user['gender']); ?></td>
+                        <td><?php echo htmlspecialchars($user['position']); ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -72,16 +83,18 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         // document.addEventListener('DOMContentLoaded', function(){
         $(document).ready(function() {
 
-            $('#userTable').DataTable({
+            const dataTable = $('#userTable').DataTable({
+                "processing": true,
+                "scrollX": true,
                 "columnDefs": [{
                     "orderable": false,
+                    "width": "70px",
                     "targets": 0
-                }],
+                }, ],
                 "ordering": false
             });
 
             const tableBody = document.getElementById('sortable-table');
-            const selectionInfo = document.getElementById('selection-info');
 
             // Initialize SortableJs
             new Sortable(tableBody, {
@@ -92,7 +105,9 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 selectedClass: 'row-selected',
 
                 onEnd: function(evt) {
-                    // get new ORDER
+
+                    // show processing message
+                    dataTable.processing(true);
                     const itemOrder = Array.from(tableBody.querySelectorAll('tr')).map(tr => tr.dataset.id);
                     fetch('save_order.php', {
                             method: 'POST',
@@ -105,17 +120,10 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         })
                         .then(response => response.json())
                         .then(data => {
-
+                            dataTable.processing(false);
                             if (data.status === 'success') {
-                                const selectionInfo = document.getElementById('selection-info');
-                                selectionInfo.textContent = 'Data updated successfully!';
-                                selectionInfo.style.color = '#28a745';
-
-                                setTimeout(() => {
-                                    selectionInfo.textContent = '';
-                                }, 2000);
+                                console.log("Order saved successfully.");
                             }
-
                         })
                         .catch(error => {
                             console.error('Error saving order:', error);

@@ -1,11 +1,16 @@
-CREATE TABLE users (
-  id INT NOT NULL AUTO_INCREMENT,
-  name VARCHAR(255) NOT NULL,
-  address VARCHAR(255) NOT NULL,
-  phone VARCHAR(50) NOT NULL,
-  email VARCHAR(255) NOT NULL,
-  display_order INT NOT NULL,
-  PRIMARY KEY (id)
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `address` varchar(255) NOT NULL,
+  `phone` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `dob` date DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'active',
+  `gender` varchar(10) DEFAULT NULL,
+  `position` varchar(255) DEFAULT NULL,
+  `display_order` int(11) NOT NULL,
+  `last_update` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
 );
   -- drop data_process table currently i am not using queue system. i"m currently directly saving the order in the database.
 -- CREATE TABLE data_process(
