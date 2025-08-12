@@ -5,7 +5,13 @@ $sql = "SELECT id, name, address, phone, email, last_update FROM users ORDER BY 
 $stmt = $pdo->query($sql);
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+$max_last_update = '0'; 
+if (!empty($users)) {
+    $last_update_times = array_column($users, 'last_update');
+    $max_last_update = max($last_update_times);
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -64,85 +70,78 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </table>
     </div>
 
-
-    <script>
-        $(document).ready(function() {
-
-            //Initialize table
-            const dataTable = $('#userTable').dataTable({
-                //Diable for first column
-                "columnDefs": [{
-                    "orderable": false,
-                    "target": 0
-                }],
-                "ordering": false,
-            });
-
-            //Initialize Sortable.js on table body
-            const tableBody = document.getElementById('sortable-table');
-            const updateMessageDiv = document.getElementById('update-message');
-
-            new Sortable(tableBody, {
-                handle: '.drag-handle',
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                onEnd: function(evt) {
-
-                    const itemOrder = Array.from(tableBody.querySelectorAll('tr')).map(tr => tr.dataset.id);
-                    const firstRow = tableBody.querySelector('tr');
-                    const lastUpdateTimestamp = firstRow ? firstRow.dataset.lastUpdate : null;
-
-                    fetch('save_order.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                order: itemOrder,
-                                last_update: lastUpdateTimestamp
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log('Server response:', data.message);
-
-                            if (data.status === 'success') {
-                                updateMessageDiv.style.color = '#28a745';
-                                updateMessageDiv.textContent = 'Order updated successfully!';
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 1500);
-                            } else {
-                                updateMessageDiv.style.color = 'red';
-                                updateMessageDiv.textContent = data.message;
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error saving order:', error);
-                            updateMessageDiv.style.color = 'red';
-                            updateMessageDiv.textContent = 'An error occurred while saving.';
-                        });
-                }
-            });
-
-            const selectionInfo = document.getElementById('selection-info');
-            tableBody.addEventListener('click', function(e) {
-                const clickedRow = e.target.closest('tr');
-                if (!clickedRow || e.target.closest('.drag-handle')) return;
-                setTimeout(updateSelectionCount, 50);
-            });
-
-            function updateSelectionCount() {
-                const selectedRows = tableBody.querySelectorAll('.row-selected').length;
-                if (selectedRows > 0) {
-                    selectionInfo.textContent = `${selectedRows} row${selectedRows > 1 ? 's' : '' } selected`;
-                } else {
-                    selectionInfo.textContent = '';
-                }
-            }
-            updateSelectionCount();
+<script>
+    $(document).ready(function() {
+        const dataTable = $('#userTable').DataTable({
+            "columnDefs": [{
+                "orderable": false,
+                "targets": 0 
+            }],
+            "ordering": false,
         });
-    </script>
+
+        const reliableLastUpdateTimestamp = '<?php echo $max_last_update; ?>';
+        const tableBody = document.getElementById('sortable-table');
+        const updateMessageDiv = document.getElementById('update-message');
+
+        new Sortable(tableBody, {
+            handle: '.drag-handle',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            multiDrag: true,
+            selectedClass: 'row-selected',
+            onEnd: function(evt) {
+                const itemOrder = Array.from(tableBody.querySelectorAll('tr')).map(tr => tr.dataset.id);
+
+                fetch('save_order.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            order: itemOrder,
+                            last_update: reliableLastUpdateTimestamp 
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Server response:', data.message);
+
+                        if (data.status === 'success') {
+                            updateMessageDiv.style.color = '#28a745';
+                            updateMessageDiv.textContent = 'Order updated successfully!';
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            updateMessageDiv.style.color = 'red';
+                            updateMessageDiv.textContent = data.message;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error saving order:', error);
+                        updateMessageDiv.style.color = 'red';
+                        updateMessageDiv.textContent = 'An error occurred while saving.';
+                    });
+            }
+        });
+
+        const selectionInfo = document.getElementById('selection-info');
+        tableBody.addEventListener('click', function(e) {
+            const clickedRow = e.target.closest('tr');
+            if (!clickedRow || e.target.closest('.drag-handle')) return;
+            setTimeout(updateSelectionCount, 50);
+        });
+
+        function updateSelectionCount() {
+            const selectedRows = tableBody.querySelectorAll('.row-selected').length;
+            if (selectedRows > 0) {
+                selectionInfo.textContent = `${selectedRows} row${selectedRows > 1 ? 's' : ''} selected`;
+            } else {
+                selectionInfo.textContent = '';
+            }
+        }
+        updateSelectionCount();
+    });
+</script>
 
 
 </body>
