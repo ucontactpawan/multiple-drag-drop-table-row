@@ -13,9 +13,19 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drag and Drop Table Rows</title>
+    <!-- Font Awesome for drag handle icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Sortable.js for drag-and-drop functionality -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <!-- Custom CSS for styling -->
     <link rel="stylesheet" href="style.css">
+    <!-- DataTables CSS for styling -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css">
+    <!-- jQuery for easier DOM manipulation -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- DataTables JS for add features like pagination, searching -->
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+
 </head>
 
 <body>
@@ -25,7 +35,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div id="selection-info"></div>
         <div id="update-message" style="text-align: center; color: #28a745; font-weight: bold; height: 20px; margin-bottom: 10px;"></div>
 
-        <table class="custom-table">
+        <table id="userTable" class="custom-table" style="width: 100%;">
             <thead>
                 <tr>
                     <th style="width: 40px;"></th>
@@ -54,24 +64,33 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </table>
     </div>
 
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        $(document).ready(function() {
+
+            //Initialize table
+            const dataTable = $('#userTable').dataTable({
+                //Diable for first column
+                "columnDefs": [{
+                    "orderable": false,
+                    "target": 0
+                }],
+                "ordering": false,
+            });
+
+            //Initialize Sortable.js on table body
             const tableBody = document.getElementById('sortable-table');
-            const selectionInfo = document.getElementById('selection-info');
             const updateMessageDiv = document.getElementById('update-message');
 
             new Sortable(tableBody, {
                 handle: '.drag-handle',
                 animation: 150,
                 ghostClass: 'sortable-ghost',
-                multiDrag: true,
-                selectedClass: 'row-selected',
-
                 onEnd: function(evt) {
-                    // Get the last_update timestamp
+
+                    const itemOrder = Array.from(tableBody.querySelectorAll('tr')).map(tr => tr.dataset.id);
                     const firstRow = tableBody.querySelector('tr');
                     const lastUpdateTimestamp = firstRow ? firstRow.dataset.lastUpdate : null;
-                    const itemOrder = Array.from(tableBody.querySelectorAll('tr')).map(tr => tr.dataset.id);
 
                     fetch('save_order.php', {
                             method: 'POST',
@@ -89,20 +108,24 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                             if (data.status === 'success') {
                                 updateMessageDiv.style.color = '#28a745';
-                                updateMessageDiv.textContent = 'Updated successfully!';
+                                updateMessageDiv.textContent = 'Order updated successfully!';
                                 setTimeout(() => {
                                     window.location.reload();
                                 }, 1500);
                             } else {
                                 updateMessageDiv.style.color = 'red';
-                                updateMessageDiv.textContent = data.message; 
+                                updateMessageDiv.textContent = data.message;
                             }
                         })
                         .catch(error => {
                             console.error('Error saving order:', error);
+                            updateMessageDiv.style.color = 'red';
+                            updateMessageDiv.textContent = 'An error occurred while saving.';
                         });
                 }
             });
+
+            const selectionInfo = document.getElementById('selection-info');
             tableBody.addEventListener('click', function(e) {
                 const clickedRow = e.target.closest('tr');
                 if (!clickedRow || e.target.closest('.drag-handle')) return;
@@ -120,6 +143,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             updateSelectionCount();
         });
     </script>
+
 
 </body>
 
