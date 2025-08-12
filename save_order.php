@@ -17,7 +17,7 @@ if (isset($data->order) && is_array($data->order) && isset($data->last_update)) 
         http_response_code(409);
         echo json_encode([
             'status' => 'conflict', 
-            'message' => 'Error: The list was updated by someone else. Please refresh and try again.'
+            'message' => 'The list was updated by someone else. Please refresh and try again.'
         ]);
         exit(); 
     }
@@ -26,7 +26,7 @@ if (isset($data->order) && is_array($data->order) && isset($data->last_update)) 
     try {
         foreach ($data->order as $position => $id) {
             $sql = "UPDATE users SET display_order = ? WHERE id = ?";
-            $stmt = $pdo->prepare($sql);
+            $stmt = $pdo->prepare(query: $sql);
             $stmt->execute([$position, $id]);
         }
         $pdo->commit();
