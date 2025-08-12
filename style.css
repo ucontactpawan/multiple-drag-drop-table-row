@@ -35,13 +35,18 @@ h1{
     text-align: left;
     border-bottom: 1px solid #e0e0e0;
 }
+ /*  default arrow cursor */
+.custom-table tbody td{
+    cursor: default;
+}
+
 .custom-table th{
     background-color: #f8f9fa;
     font-weight: 600;
     color: #555;
 }
 .custom-table tbody tr{
-    cursor: pointer;
+    /* cursor: pointer; */
     transition: background-color 0.2s ease-in-out;
 }
 .custom-table tbody tr:last-child td{
@@ -68,4 +73,8 @@ h1{
 }
 .drag-handle:active{
     cursor: grabbing;
+}
+/* Set cursor for the icon */
+.drag-handle i {
+    cursor: move;
 }
