@@ -2,7 +2,7 @@
 
 require_once 'db.php';
 
-$sql = "SELECT *  FROM users ORDER BY display_order ASC";
+$sql = "SELECT * FROM users WHERE status = 'active' ORDER BY display_order ASC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute();
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -38,6 +38,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="container">
         <h1>Table List</h1>
         <div id="selection-info"></div>
+    <div id="reorderNotice" style="font-size:0.8rem; color:#666; margin-bottom:8px;"></div>
 
         <table id="userTable" class="custom-table">
             <thead>
@@ -56,7 +57,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <tbody id="sortable-table">
                 <?php
                 foreach ($users as $user): ?>
-                    <tr data-id="<?php echo htmlspecialchars($user['id']); ?>">
+                    <tr data-id="<?php echo htmlspecialchars($user['id']); ?>" data-order="<?php echo (int)$user['display_order']; ?>">
                         <td class="drag-handle">
                             <i class="fas fa-grip-vertical"></i>
                             <?php echo htmlspecialchars($user['id']); ?>
@@ -80,56 +81,93 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
     <script>
-        // document.addEventListener('DOMContentLoaded', function(){
         $(document).ready(function() {
 
             const dataTable = $('#userTable').DataTable({
-                "processing": true,
-                "scrollX": true,
-                "columnDefs": [{
-                    "orderable": false,
-                    "width": "70px",
-                    "targets": 0
-                }, ],
-                "ordering": false
+                processing: true,
+                scrollX: true,
+                ordering: false, 
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+                columnDefs: [
+                    { orderable: false, width: '70px', targets: 0 }
+                ]
             });
 
             const tableBody = document.getElementById('sortable-table');
-
-            // Initialize SortableJs
-            new Sortable(tableBody, {
-                handle: '.drag-handle',
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                multiDrag: true,
-                selectedClass: 'row-selected',
-
-                onEnd: function(evt) {
-
-                    // show processing message
-                    dataTable.processing(true);
-                    const itemOrder = Array.from(tableBody.querySelectorAll('tr')).map(tr => tr.dataset.id);
-                    fetch('save_order.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                order: itemOrder
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            dataTable.processing(false);
-                            if (data.status === 'success') {
-                                console.log("Order saved successfully.");
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error saving order:', error);
-                        });
+            let sortableInstance = null;
+            let saveTimeout = null; 
+            function initSortable() {
+                if (sortableInstance) {
+                    sortableInstance.destroy();
+                    sortableInstance = null;
                 }
+                sortableInstance = new Sortable(tableBody, {
+                    handle: '.drag-handle',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: handleDragEnd
+                });
+            }
+
+            function handleDragEnd() {
+                if (saveTimeout) clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(savePartial, 400);
+            }
+
+            function savePartial() {
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
+                if (rows.length === 0) return;
+
+                const originalOrders = rows.map(r => parseInt(r.getAttribute('data-order'), 10));
+                const sortedOriginal = [...originalOrders].sort((a,b)=>a-b); // preserve original set
+
+                // Map: new row order 
+                const updates = rows.map((row, idx) => ({
+                    id: parseInt(row.dataset.id, 10),
+                    display_order: sortedOriginal[idx]
+                }));
+
+                // Detect if anything  changed 
+                let changed = false;
+                for (let i=0;i<updates.length;i++) {
+                    if (parseInt(rows[i].getAttribute('data-order'),10) !== updates[i].display_order) {
+                        changed = true;
+                        break;
+                    }
+                }
+                if (!changed) return; 
+
+                dataTable.processing(true);
+                fetch('save_order.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ updates })
+                })
+                .then(r=>r.json())
+                .then(data => {
+                    dataTable.processing(false);
+                    if (data.status === 'success') {
+                        // Update data-order
+                        updates.forEach((u, idx) => {
+                            rows[idx].setAttribute('data-order', u.display_order);
+                        });
+                        console.log('order saved.');
+                    } else {
+                        console.warn('Save failed:', data.message);
+                    }
+                })
+                .catch(err => {
+                    dataTable.processing(false);
+                    console.error('Error saving order:', err);
+                });
+            }
+
+            dataTable.on('draw.dt', function(){
+                initSortable();
             });
+            // First init
+            initSortable();
+
         });
     </script>
 
