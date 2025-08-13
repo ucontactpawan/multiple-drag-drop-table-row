@@ -20,6 +20,17 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- SortableJs Library link -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script>
+        // Mount MultiDrag plugin 
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Sortable && Sortable.MultiDrag && Sortable.mount) {
+                try {
+                    Sortable.mount(new Sortable.MultiDrag());
+                } catch (e) {
+                    /* ignore */ }
+            }
+        });
+    </script>
     <!-- Custom CSS link -->
     <link rel="stylesheet" href="style.css">
     <!-- bootstrap CSS link -->
@@ -38,7 +49,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="container">
         <h1>Table List</h1>
         <div id="selection-info"></div>
-    <div id="reorderNotice" style="font-size:0.8rem; color:#666; margin-bottom:8px;"></div>
+        <div id="reorderNotice" style="font-size:0.8rem; color:#666; margin-bottom:8px;"></div>
 
         <table id="userTable" class="custom-table">
             <thead>
@@ -66,9 +77,6 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td><?php echo htmlspecialchars($user['address']); ?></td>
                         <td><?php echo htmlspecialchars($user['phone']); ?></td>
                         <td><?php echo htmlspecialchars($user['email']); ?></td>
-
-
-                        <!-- ADD THESE NEW CELLS -->
                         <td><?php echo htmlspecialchars($user['dob']); ?></td>
                         <td><?php echo htmlspecialchars($user['status']); ?></td>
                         <td><?php echo htmlspecialchars($user['gender']); ?></td>
@@ -86,16 +94,22 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             const dataTable = $('#userTable').DataTable({
                 processing: true,
                 scrollX: true,
-                ordering: false, 
-                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
-                columnDefs: [
-                    { orderable: false, width: '70px', targets: 0 }
-                ]
+                ordering: false,
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, 'All']
+                ],
+                columnDefs: [{
+                    orderable: false,
+                    width: '70px',
+                    targets: 0
+                }]
             });
 
             const tableBody = document.getElementById('sortable-table');
             let sortableInstance = null;
-            let saveTimeout = null; 
+            let saveTimeout = null;
+
             function initSortable() {
                 if (sortableInstance) {
                     sortableInstance.destroy();
@@ -105,6 +119,9 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     handle: '.drag-handle',
                     animation: 150,
                     ghostClass: 'sortable-ghost',
+                    multiDrag: true, 
+                    selectedClass: 'row-selected',
+                    multiDragKey: 'CTRL', 
                     onEnd: handleDragEnd
                 });
             }
@@ -114,55 +131,65 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 saveTimeout = setTimeout(savePartial, 400);
             }
 
+            // Toggle selection 
+            tableBody.addEventListener('click', function(e) {
+                const tr = e.target.closest('tr');
+                if (!tr) return;
+                if (e.target.closest('.drag-handle')) return; 
+                tr.classList.toggle('row-selected');
+            });
+
             function savePartial() {
                 const rows = Array.from(tableBody.querySelectorAll('tr'));
                 if (rows.length === 0) return;
 
                 const originalOrders = rows.map(r => parseInt(r.getAttribute('data-order'), 10));
-                const sortedOriginal = [...originalOrders].sort((a,b)=>a-b); // preserve original set
-
-                // Map: new row order 
+                const sortedOriginal = [...originalOrders].sort((a, b) => a - b);
                 const updates = rows.map((row, idx) => ({
                     id: parseInt(row.dataset.id, 10),
                     display_order: sortedOriginal[idx]
                 }));
 
-                // Detect if anything  changed 
+                // anything  changed 
                 let changed = false;
-                for (let i=0;i<updates.length;i++) {
-                    if (parseInt(rows[i].getAttribute('data-order'),10) !== updates[i].display_order) {
+                for (let i = 0; i < updates.length; i++) {
+                    if (parseInt(rows[i].getAttribute('data-order'), 10) !== updates[i].display_order) {
                         changed = true;
                         break;
                     }
                 }
-                if (!changed) return; 
+                if (!changed) return;
 
                 dataTable.processing(true);
                 fetch('save_order.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ updates })
-                })
-                .then(r=>r.json())
-                .then(data => {
-                    dataTable.processing(false);
-                    if (data.status === 'success') {
-                        // Update data-order
-                        updates.forEach((u, idx) => {
-                            rows[idx].setAttribute('data-order', u.display_order);
-                        });
-                        console.log('order saved.');
-                    } else {
-                        console.warn('Save failed:', data.message);
-                    }
-                })
-                .catch(err => {
-                    dataTable.processing(false);
-                    console.error('Error saving order:', err);
-                });
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            updates
+                        })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        dataTable.processing(false);
+                        if (data.status === 'success') {
+                            // Update data-order
+                            updates.forEach((u, idx) => {
+                                rows[idx].setAttribute('data-order', u.display_order);
+                            });
+                            console.log('order saved.');
+                        } else {
+                            console.warn('Save failed:', data.message);
+                        }
+                    })
+                    .catch(err => {
+                        dataTable.processing(false);
+                        console.error('Error saving order:', err);
+                    });
             }
 
-            dataTable.on('draw.dt', function(){
+            dataTable.on('draw.dt', function() {
                 initSortable();
             });
             // First init
