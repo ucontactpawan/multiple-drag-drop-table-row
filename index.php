@@ -26,13 +26,14 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if (window.Sortable && Sortable.MultiDrag && Sortable.mount) {
                 try {
                     Sortable.mount(new Sortable.MultiDrag());
-                } catch (e) {
-         }
+                } catch (e) { }
             }
         });
     </script>
     <!-- Custom CSS link -->
     <link rel="stylesheet" href="style.css">
+    <!-- Modal specific modern style -->
+    <link rel="stylesheet" href="modal-style.css">
     <!-- bootstrap CSS link -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.css">
@@ -41,15 +42,24 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <!-- Bootstrap JS link -->
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.js"></script>
+    <!-- Bootstrap JS bundle for modal functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
 </head>
 
 <body>
 
+
+
     <div class="container">
         <h1>Table List</h1>
         <div id="selection-info"></div>
         <div id="reorderNotice" style="font-size:0.8rem; color:#666; margin-bottom:8px;"></div>
+
+        <!-- add user button -->
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            Add User
+        </button>
 
         <table id="userTable" class="custom-table">
             <thead>
@@ -68,7 +78,8 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <tbody id="sortable-table">
                 <?php
                 foreach ($users as $user): ?>
-                    <tr data-id="<?php echo htmlspecialchars($user['id']); ?>" data-order="<?php echo (int)$user['display_order']; ?>">
+                    <tr data-id="<?php echo htmlspecialchars($user['id']); ?>"
+                        data-order="<?php echo (int) $user['display_order']; ?>">
                         <td class="drag-handle">
                             <i class="fas fa-grip-vertical"></i>
                             <?php echo htmlspecialchars($user['id']); ?>
@@ -87,9 +98,30 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </table>
     </div>
 
+    <!-- Add user modal with dynamic fieldsets -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <form id="addUserForm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addUserModalLabel">Add New User(s)</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="userFieldsets">
+                        <!-- User fieldsets will be appended here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="addMoreBtn">Add More</button>
+                        <button type="submit" class="btn btn-success">Save All</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             const dataTable = $('#userTable').DataTable({
                 processing: true,
@@ -119,9 +151,9 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     handle: '.drag-handle',
                     animation: 150,
                     ghostClass: 'sortable-ghost',
-                    multiDrag: true, 
+                    multiDrag: true,
                     selectedClass: 'row-selected',
-                    multiDragKey: 'CTRL', 
+                    multiDragKey: 'CTRL',
                     onEnd: handleDragEnd
                 });
             }
@@ -132,10 +164,10 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
 
             // Toggle selection 
-            tableBody.addEventListener('click', function(e) {
+            tableBody.addEventListener('click', function (e) {
                 const tr = e.target.closest('tr');
                 if (!tr) return;
-                if (e.target.closest('.drag-handle')) return; 
+                if (e.target.closest('.drag-handle')) return;
                 tr.classList.toggle('row-selected');
             });
 
@@ -162,14 +194,14 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 dataTable.processing(true);
                 fetch('save_order.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            updates
-                        })
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        updates
                     })
+                })
                     .then(r => r.json())
                     .then(data => {
                         dataTable.processing(false);
@@ -189,11 +221,119 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     });
             }
 
-            dataTable.on('draw.dt', function() {
+            dataTable.on('draw.dt', function () {
                 initSortable();
             });
             // First init
             initSortable();
+
+            // Template for user fieldset
+            function getUserFieldset(idx) {
+                return `<div class="user-fieldset border rounded p-2 mb-3" data-idx="${idx}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>User ${idx + 1}</span>
+                    <button type="button" class="btn btn-sm btn-danger removeUserBtn" title="Remove"><i class="fas fa-times"></i></button>
+                </div>
+                <input type="text" class="form-control mb-2" name="name" placeholder="Name" required>
+                <input type="text" class="form-control mb-2" name="address" placeholder="Address" required>
+                <input type="text" class="form-control mb-2" name="phone" placeholder="Phone" required>
+                <input type="email" class="form-control mb-2" name="email" placeholder="Email" required>
+                <input type="date" class="form-control mb-2" name="dob" placeholder="Date of Birth" required>
+                <select class="form-select mb-2" name="status" required>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+                <select class="form-select mb-2" name="gender" required>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+                <input type="text" class="form-control mb-2" name="position" placeholder="position" required>
+            </div>`;
+            }
+
+            // Add initial fieldset on modal show
+            $('#addUserModal').on('show.bs.modal', function () {
+                const $container = $('#userFieldsets');
+                $container.empty().append(getUserFieldset(0));
+            });
+
+            // Add more fieldsets
+            let userCount = 1;
+            $('#addMoreBtn').on('click', function () {
+                const $container = $('#userFieldsets');
+                $container.append(getUserFieldset(userCount));
+                userCount++;
+            });
+
+            // Remove a fieldset
+            $(document).on('click', '.removeUserBtn', function () {
+                $(this).closest('.user-fieldset').remove();
+                // Renumber remaining fieldsets
+                $('#userFieldsets .user-fieldset').each(function (i) {
+                    $(this).attr('data-idx', i);
+                    $(this).find('span').text('User ' + (i + 1));
+                });
+                userCount = $('#userFieldsets .user-fieldset').length;
+            });
+
+            // Form submission for adding multiple users
+            $('#addUserForm').on('submit', function (e) {
+                e.preventDefault();
+                const $form = $(this);
+                const $btn = $form.find('button[type="submit"]');
+                if ($btn.prop('disabled')) return;
+                $btn.prop('disabled', true).text('Saving...');
+                // Collect all user fieldsets
+                const users = [];
+                $('#userFieldsets .user-fieldset').each(function () {
+                    const $fs = $(this);
+                    const user = {
+                        name: $fs.find('input[name="name"]').val().trim(),
+                        address: $fs.find('input[name="address"]').val().trim(),
+                        phone: $fs.find('input[name="phone"]').val().trim(),
+                        email: $fs.find('input[name="email"]').val().trim(),
+                        dob: $fs.find('input[name="dob"]').val().trim(),
+                        status: $fs.find('select[name="status"]').val(),
+                        gender: $fs.find('select[name="gender"]').val(),
+                        position: $fs.find('input[name="position"]').val().trim()
+                    };
+                    users.push(user);
+                });
+                // Basic validation
+                if (users.length === 0 || users.some(u => !u.name || !u.address || !u.phone || !u.email || !u.dob || !u.status || !u.gender || !u.position)) {
+                    alert('Please fill all fields for each user.');
+                    $btn.prop('disabled', false).text('Save All');
+                    return;
+                }
+                $.ajax({
+                    url: 'add_user.php',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ users }),
+                    complete: function (xhr) {
+                        let res = null;
+                        try { res = xhr.responseJSON || JSON.parse(xhr.responseText); } catch (e) { }
+                        let msg = res && res.message ? res.message : (xhr.status === 200 ? 'Users added successfully' : 'Error adding users. Please try again.');
+                        //  duplicate email
+                        if (res && res.status === 'error' && Array.isArray(res.results)) {
+                            const allDupEmail = res.results.length > 0 && res.results.every(r => r.status === 'error' && r.message && r.message.toLowerCase().includes('duplicate email'));
+                            if (allDupEmail) {
+                                msg = 'Duplicate email. We cannot save.';
+                            }
+                        }
+                        alert(msg);
+                        if (xhr.status === 200 && res && res.status === 'success') {
+                            const modalEl = document.getElementById('addUserModal');
+                            const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                            modalInstance.hide();
+                            $form[0].reset();
+                            location.reload();
+                        }
+                        $btn.prop('disabled', false).text('Save All');
+                    }
+                });
+            });
+
 
         });
     </script>

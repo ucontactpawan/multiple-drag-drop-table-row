@@ -1,0 +1,135 @@
+/* Modern modal styles for Add User(s) */
+
+
+.modal-lg {
+    max-width: 900px;
+}
+
+#addUserModal .modal-content {
+    background: #fff;
+    color: #222c36;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    border: none;
+}
+
+#addUserModal .modal-header {
+    border-bottom: 1px solid #e0e0e0;
+    background: #f7f8fa;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+}
+
+#addUserModal .modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #222c36;
+}
+
+#addUserModal .modal-body {
+    padding: 2rem 1.5rem 1rem 1.5rem;
+    background: #fff;
+}
+
+.user-fieldset {
+    background: #f7f8fa;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+    padding: 1.2rem 1rem 1rem 1rem;
+    position: relative;
+}
+
+.user-fieldset .d-flex {
+    margin-bottom: 1rem;
+}
+
+.user-fieldset span {
+    font-weight: 500;
+    font-size: 1.1rem;
+    color: #222c36;
+}
+
+.user-fieldset .removeUserBtn {
+    background: #e74c3c;
+    color: #fff;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    transition: background 0.2s;
+}
+.user-fieldset .removeUserBtn:hover {
+    background: #c0392b;
+}
+
+.user-fieldset input,
+.user-fieldset select {
+    background: #fff;
+    color: #222c36;
+    border: 1px solid #bfc9d2;
+    border-radius: 7px;
+    margin-bottom: 0.7rem;
+    font-size: 1rem;
+    padding: 0.7rem 0.9rem;
+}
+.user-fieldset input:focus,
+.user-fieldset select:focus {
+    border-color: #3498db;
+    outline: none;
+    background: #f0f4fa;
+}
+
+.user-fieldset input::placeholder {
+    color: #888;
+    opacity: 1;
+}
+
+#addUserModal .modal-footer {
+    border-top: 1px solid #e0e0e0;
+    background: #f7f8fa;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+#addUserModal .btn-success {
+    background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+    border: none;
+    font-weight: 600;
+    padding: 0.7rem 2.2rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    transition: background 0.2s;
+}
+#addUserModal .btn-success:hover {
+    background: linear-gradient(90deg, #219150 0%, #27ae60 100%);
+}
+
+#addUserModal .btn-secondary {
+    background: #34495e;
+    color: #fff;
+    border: none;
+    font-weight: 500;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    transition: background 0.2s;
+}
+#addUserModal .btn-secondary:hover {
+    background: #2c3e50;
+}
+
+@media (max-width: 991px) {
+    .modal-lg {
+        max-width: 98vw;
+    }
+}
