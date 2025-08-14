@@ -1,71 +1,24 @@
+#addUserModal .user-fieldset .form-control,
+#addUserModal .user-fieldset .form-select {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    flex: 1 1 0;
+}
 /* Modern modal styles for Add User(s) */
 
 
-.modal-lg {
-    max-width: 900px;
-}
 
+#addUserModal .modal-lg,
+#addUserModal .modal-dialog {
+    max-width: 1600px;
+    width: 98vw;
+    margin: 1.75rem auto;
+}
 #addUserModal .modal-content {
-    background: #fff;
-    color: #222c36;
-    border-radius: 18px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    border: none;
-}
-
-#addUserModal .modal-header {
-    border-bottom: 1px solid #e0e0e0;
-    background: #f7f8fa;
-    border-top-left-radius: 18px;
-    border-top-right-radius: 18px;
-}
-
-#addUserModal .modal-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    color: #222c36;
-}
-
-#addUserModal .modal-body {
-    padding: 2rem 1.5rem 1rem 1.5rem;
-    background: #fff;
-}
-
-.user-fieldset {
-    background: #f7f8fa;
-    border-radius: 12px;
-    border: 1px solid #e0e0e0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    margin-bottom: 1.5rem;
-    padding: 1.2rem 1rem 1rem 1rem;
-    position: relative;
-}
-
-.user-fieldset .d-flex {
-    margin-bottom: 1rem;
-}
-
-.user-fieldset span {
-    font-weight: 500;
-    font-size: 1.1rem;
-    color: #222c36;
-}
-
-.user-fieldset .removeUserBtn {
-    background: #e74c3c;
-    color: #fff;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    transition: background 0.2s;
-}
-.user-fieldset .removeUserBtn:hover {
-    background: #c0392b;
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: visible;
 }
 
 .user-fieldset input,

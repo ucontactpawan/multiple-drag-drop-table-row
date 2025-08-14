@@ -227,28 +227,30 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             // First init
             initSortable();
 
-            // Template for user fieldset
+            // user fieldset
             function getUserFieldset(idx) {
-                return `<div class="user-fieldset border rounded p-2 mb-3" data-idx="${idx}">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span>User ${idx + 1}</span>
-                    <button type="button" class="btn btn-sm btn-danger removeUserBtn" title="Remove"><i class="fas fa-times"></i></button>
-                </div>
-                <input type="text" class="form-control mb-2" name="name" placeholder="Name" required>
-                <input type="text" class="form-control mb-2" name="address" placeholder="Address" required>
-                <input type="text" class="form-control mb-2" name="phone" placeholder="Phone" required>
-                <input type="email" class="form-control mb-2" name="email" placeholder="Email" required>
-                <input type="date" class="form-control mb-2" name="dob" placeholder="Date of Birth" required>
-                <select class="form-select mb-2" name="status" required>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-                <select class="form-select mb-2" name="gender" required>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                </select>
-                <input type="text" class="form-control mb-2" name="position" placeholder="position" required>
-            </div>`;
+                return `<div class="user-fieldset border rounded p-3 mb-3 bg-white" data-idx="${idx}">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold">User ${idx + 1}</span>
+                        <button type="button" class="btn btn-sm btn-danger removeUserBtn" title="Remove"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="row g-2 align-items-end flex-nowrap">
+                        <div class="col-lg-1 col-md-2 col-6"><input type="text" class="form-control" name="name" placeholder="Name" required></div>
+                        <div class="col-lg-1 col-md-2 col-6"><input type="text" class="form-control" name="address" placeholder="Address" required></div>
+                        <div class="col-lg-1 col-md-2 col-6"><input type="text" class="form-control" name="phone" placeholder="Phone" required></div>
+                        <div class="col-lg-2 col-md-2 col-6"><input type="email" class="form-control" name="email" placeholder="Email" required></div>
+                        <div class="col-lg-2 col-md-2 col-6"><input type="date" class="form-control" name="dob" placeholder="Date of Birth" required></div>
+                        <div class="col-lg-1 col-md-2 col-6"><select class="form-select" name="status" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select></div>
+                        <div class="col-lg-1 col-md-2 col-6"><select class="form-select" name="gender" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select></div>
+                        <div class="col-lg-2 col-md-2 col-6"><input type="text" class="form-control" name="position" placeholder="Position" required></div>
+                    </div>
+                </div>`;
             }
 
             // Add initial fieldset on modal show
