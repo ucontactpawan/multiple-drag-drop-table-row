@@ -2,8 +2,8 @@
 
 require_once 'db.php';
 
-$sql = "SELECT * FROM users WHERE status = 'active' ORDER BY display_order ASC";
-$stmt = $pdo->prepare($sql);
+$queryBase = "SELECT * FROM users WHERE status = 'active' ORDER BY display_order ASC";
+$stmt = $pdo->prepare($queryBase);
 $stmt->execute();
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -27,7 +27,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 try {
                     Sortable.mount(new Sortable.MultiDrag());
                 } catch (e) {
-                    /* ignore */ }
+         }
             }
         });
     </script>
