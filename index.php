@@ -232,7 +232,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 return `<div class="user-fieldset border rounded p-3 mb-3 bg-white" data-idx="${idx}">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="fw-bold">User ${idx + 1}</span>
-                        <button type="button" class="btn btn-sm btn-danger removeUserBtn" title="Remove"><i class="fas fa-times"></i></button>
+                        ${idx === 0 ? '' : '<button type="button" class="btn btn-sm btn-danger removeUserBtn" title="Remove"><i class="fas fa-times"></i></button>'}
                     </div>
                     <div class="row g-2 align-items-end flex-nowrap">
                         <div class="col-lg-1 col-md-2 col-6"><input type="text" class="form-control" name="name" placeholder="Name" required></div>
