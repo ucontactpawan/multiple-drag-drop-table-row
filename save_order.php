@@ -1,3 +1,4 @@
+
 <?php
 
 require_once 'db.php';
@@ -6,6 +7,8 @@ header('Content-Type: application/json');
 $json = file_get_contents('php://input');
 $data = json_decode($json, true);
 
+// Full reorder logic commented out. Only partial updates are allowed.
+/*
 if (isset($data['order'])) {
     //  All rows
     if (!is_array($data['order']) || empty($data['order'])) {
@@ -44,9 +47,10 @@ if (isset($data['order'])) {
     }
     exit;
 }
+*/
 
 if (isset($data['updates'])) {
-    // f {id, display_order}
+    // {id, display_order}
     if (!is_array($data['updates']) || empty($data['updates'])) {
         http_response_code(400);
         echo json_encode(['status' => 'error', 'message' => 'Invalid updates array']);
