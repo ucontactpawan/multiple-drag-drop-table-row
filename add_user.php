@@ -16,12 +16,17 @@ if (!isset($data['users']) || !is_array($data['users']) || count($data['users'])
 
 
 try {
-    $pdo->beginTransaction();
-    // Lock max display_order
-    $stmt = $pdo->query("SELECT display_order FROM users ORDER BY display_order DESC LIMIT 1 FOR UPDATE");
-    $last = $stmt->fetchColumn();
-    $nextOrder = ($last !== false && $last !== null) ? ((int)$last + 1) : 0;
+    // Ensure the sequence is ahead of current max(display_order)
+    $maxStmt = $pdo->query("SELECT COALESCE(MAX(display_order), -1) AS max_order FROM users");
+    $maxOrder = (int)$maxStmt->fetchColumn();
+    $autoStmt = $pdo->query("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'display_order_seq'");
+    $seqAuto = (int)$autoStmt->fetchColumn();
+    $target = $maxOrder + 1; // next display_order
+    if ($seqAuto <= $target) {
+        $pdo->exec("ALTER TABLE display_order_seq AUTO_INCREMENT = " . $target);
+    }
 
+    $pdo->beginTransaction();
     $sql = "INSERT INTO users (name, address, phone, email, dob, status, gender, position, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $insert = $pdo->prepare($sql);
     $dupCheck = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1 FOR UPDATE');
@@ -46,11 +51,15 @@ try {
             $results[] = [ 'status' => 'error', 'message' => 'Duplicate email detected. Not inserted again.', 'user' => $user ];
             continue;
         }
-        $insert->execute([$name, $address, $phone, $email, $dob, $status, $gender, $position, $nextOrder]);
+        // // Get atomic display_order from sequence table
+        // $pdo->exec("INSERT INTO display_order_seq VALUES ()");
+        $seqId = $pdo->lastInsertId();
+        $insert->execute([$name, $address, $phone, $email, $dob, $status, $gender, $position, $seqId]);
         $results[] = [ 'status' => 'success', 'message' => 'User added', 'user' => $user ];
-        $nextOrder++;
     }
     $pdo->commit();
+
+
     $successCount = count(array_filter($results, fn($r) => $r['status'] === 'success'));
     $errorCount = count($results) - $successCount;
     $msg = $successCount ? "$successCount user(s) added." : "No users added.";

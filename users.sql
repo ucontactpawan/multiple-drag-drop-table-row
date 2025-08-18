@@ -22,6 +22,12 @@ CREATE TABLE `users` (
 --     );
 
 
+-- sequence table for unique display_order.
+CREATE TABLE display_order_seq (
+    id INT PRIMARY KEY AUTO_INCREMENT
+);
+
+
 
 INSERT INTO `users` (`id`, `name`, `address`, `phone`, `email`, `display_order`) VALUES
 (1, 'Pawan', 'Noida, uttar-pradesh', '9199208167', 'pawan@gmail.com', 0),
