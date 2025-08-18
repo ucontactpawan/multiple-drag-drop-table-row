@@ -51,14 +51,16 @@ try {
             $results[] = [ 'status' => 'error', 'message' => 'Duplicate email detected. Not inserted again.', 'user' => $user ];
             continue;
         }
-        // // Get atomic display_order from sequence table
-        // $pdo->exec("INSERT INTO display_order_seq VALUES ()");
+        // Get atomic display_order from sequence table
+        $pdo->exec("INSERT INTO display_order_seq VALUES ()");
         $seqId = $pdo->lastInsertId();
         $insert->execute([$name, $address, $phone, $email, $dob, $status, $gender, $position, $seqId]);
         $results[] = [ 'status' => 'success', 'message' => 'User added', 'user' => $user ];
     }
     $pdo->commit();
 
+    // Clean up the sequence table after all inserts
+    // $pdo->exec("DELETE FROM display_order_seq");
 
     $successCount = count(array_filter($results, fn($r) => $r['status'] === 'success'));
     $errorCount = count($results) - $successCount;
