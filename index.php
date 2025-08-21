@@ -108,7 +108,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" id="userFieldsets">
-                        <!-- User fieldsets will be appended here -->
+                        <!-- User fieldsets will be appended  -->
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" id="addMoreBtn">Add More</button>
