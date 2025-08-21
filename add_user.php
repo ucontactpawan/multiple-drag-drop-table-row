@@ -14,7 +14,6 @@ if (!isset($data['users']) || !is_array($data['users']) || count($data['users'])
     exit;
 }
 
-
 try {
     // Ensure the sequence is ahead of current max(display_order)
     $maxStmt = $pdo->query("SELECT COALESCE(MAX(display_order), -1) AS max_order FROM users");
@@ -33,7 +32,7 @@ try {
 
     $results = [];
     foreach ($data['users'] as $user) {
-        
+
         $name = trim($user['name'] ?? '');
         $address = trim($user['address'] ?? '');
         $phone = trim($user['phone'] ?? '');
@@ -43,19 +42,19 @@ try {
         $gender = trim($user['gender'] ?? '');
         $position = trim($user['position'] ?? '');
         if (!$name || !$address || !$phone || !$email || !$dob || !$status || !$gender || !$position) {
-            $results[] = [ 'status' => 'error', 'message' => 'Missing required fields', 'user' => $user ];
+            $results[] = ['status' => 'error', 'message' => 'Missing required fields', 'user' => $user];
             continue;
         }
         $dupCheck->execute([$email]);
         if ($dupCheck->fetchColumn()) {
-            $results[] = [ 'status' => 'error', 'message' => 'Duplicate email detected. Not inserted again.', 'user' => $user ];
+            $results[] = ['status' => 'error', 'message' => 'Duplicate email detected. Not inserted again.', 'user' => $user];
             continue;
         }
         // Get atomic display_order from sequence table
         $pdo->exec("INSERT INTO display_order_seq VALUES ()");
         $seqId = $pdo->lastInsertId();
         $insert->execute([$name, $address, $phone, $email, $dob, $status, $gender, $position, $seqId]);
-        $results[] = [ 'status' => 'success', 'message' => 'User added', 'user' => $user ];
+        $results[] = ['status' => 'success', 'message' => 'User added', 'user' => $user];
     }
     $pdo->commit();
 
@@ -65,7 +64,8 @@ try {
     $successCount = count(array_filter($results, fn($r) => $r['status'] === 'success'));
     $errorCount = count($results) - $successCount;
     $msg = $successCount ? "$successCount user(s) added." : "No users added.";
-    if ($errorCount) $msg .= " $errorCount error(s).";
+    if ($errorCount)
+        $msg .= " $errorCount error(s).";
     echo json_encode(['status' => $successCount ? 'success' : 'error', 'message' => $msg, 'results' => $results]);
     exit;
 } catch (PDOException $e) {

@@ -26,7 +26,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if (window.Sortable && Sortable.MultiDrag && Sortable.mount) {
                 try {
                     Sortable.mount(new Sortable.MultiDrag());
-                } catch (e) { }
+                } catch (e) {}
             }
         });
     </script>
@@ -121,7 +121,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
 
             const dataTable = $('#userTable').DataTable({
                 processing: true,
@@ -164,7 +164,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
 
             // Toggle selection 
-            tableBody.addEventListener('click', function (e) {
+            tableBody.addEventListener('click', function(e) {
                 const tr = e.target.closest('tr');
                 if (!tr) return;
                 if (e.target.closest('.drag-handle')) return;
@@ -194,14 +194,14 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 dataTable.processing(true);
                 fetch('save_order.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        updates
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            updates
+                        })
                     })
-                })
                     .then(r => r.json())
                     .then(data => {
                         dataTable.processing(false);
@@ -221,7 +221,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     });
             }
 
-            dataTable.on('draw.dt', function () {
+            dataTable.on('draw.dt', function() {
                 initSortable();
             });
             // First init
@@ -254,24 +254,24 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
 
             // Add initial fieldset on modal show
-            $('#addUserModal').on('show.bs.modal', function () {
+            $('#addUserModal').on('show.bs.modal', function() {
                 const $container = $('#userFieldsets');
                 $container.empty().append(getUserFieldset(0));
             });
 
             // Add more fieldsets
             let userCount = 1;
-            $('#addMoreBtn').on('click', function () {
+            $('#addMoreBtn').on('click', function() {
                 const $container = $('#userFieldsets');
                 $container.append(getUserFieldset(userCount));
                 userCount++;
             });
 
             // Remove a fieldset
-            $(document).on('click', '.removeUserBtn', function () {
+            $(document).on('click', '.removeUserBtn', function() {
                 $(this).closest('.user-fieldset').remove();
                 // Renumber remaining fieldsets
-                $('#userFieldsets .user-fieldset').each(function (i) {
+                $('#userFieldsets .user-fieldset').each(function(i) {
                     $(this).attr('data-idx', i);
                     $(this).find('span').text('User ' + (i + 1));
                 });
@@ -279,7 +279,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             });
 
             // Form submission for adding multiple users
-            $('#addUserForm').on('submit', function (e) {
+            $('#addUserForm').on('submit', function(e) {
                 e.preventDefault();
                 const $form = $(this);
                 const $btn = $form.find('button[type="submit"]');
@@ -287,7 +287,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 $btn.prop('disabled', true).text('Saving...');
                 // Collect all user fieldsets
                 const users = [];
-                $('#userFieldsets .user-fieldset').each(function () {
+                $('#userFieldsets .user-fieldset').each(function() {
                     const $fs = $(this);
                     const user = {
                         name: $fs.find('input[name="name"]').val().trim(),
@@ -311,10 +311,14 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     url: 'add_user.php',
                     type: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ users }),
-                    complete: function (xhr) {
+                    data: JSON.stringify({
+                        users
+                    }),
+                    complete: function(xhr) {
                         let res = null;
-                        try { res = xhr.responseJSON || JSON.parse(xhr.responseText); } catch (e) { }
+                        try {
+                            res = xhr.responseJSON || JSON.parse(xhr.responseText);
+                        } catch (e) {}
                         let msg = res && res.message ? res.message : (xhr.status === 200 ? 'Users added successfully' : 'Error adding users. Please try again.');
                         //  duplicate email
                         if (res && res.status === 'error' && Array.isArray(res.results)) {
